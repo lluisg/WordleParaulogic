@@ -4,6 +4,7 @@ import os
 from tqdm import tqdm
 
 def check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, paraula):
+
     if resultat == 'I':
         if paraula_input.count(lletra) == 1:
             # si la lletra nomes apareix una vegada a la paraula introduida
@@ -11,7 +12,7 @@ def check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, paraula):
                 return True
         else:
             # si la lletra apareix mes de una vegada a la paraula introduida
-            if paraula.count(lletra) == 1: # descarta les paraules en que apareix mes de una vegada
+            if paraula.count(lletra) <= 1: # descarta les paraules en que apareix mes de una vegada
                 return True
 
     elif resultat == 'M':
@@ -61,22 +62,26 @@ if __name__ == "__main__":
     for x in diccionari.keys():
         if len(x) == 5 and ' ' not in x:
             diccionari_possibles[x] = diccionari[x]
+    # diccionari_possibles = {'pizza':0.5, 'tarar':0.5}
 
     resultats = get_possibles_lists(['I', 'M', 'C'], 5)
 
     futures_paraules = {}
     for word in tqdm(diccionari_possibles.keys()):
-    # for word in tqdm(list(diccionari_possibles.keys())[:30]):
+    # for word in tqdm(['tarar']):
         futures_paraules[word] = {}
 
         for resultat in resultats:
             futures_paraules_calc = calcular_paraules_possibles(word, resultat, diccionari_possibles)
             futures_paraules[word][resultat] = list(futures_paraules_calc.keys())
 
-    d1 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 2 == 0}
-    d2 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 2 == 1}
+    d1 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 0}
+    d2 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 1}
+    d3 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 2}
 
     with open(futur_file.replace('.json', '_1.json'), 'w') as fo:
         json.dump(d1, fo)
     with open(futur_file.replace('.json', '_2.json'), 'w') as fo:
         json.dump(d2, fo)
+    with open(futur_file.replace('.json', '_3.json'), 'w') as fo:
+        json.dump(d3, fo)

@@ -124,7 +124,7 @@ def seleccio_per_entropia(diccionari_possibles, data):
         print(paraula_possible, entropia_paraula)
         resultats_entropia[paraula_possible] = entropia_paraula
 
-    print(resultats_entropia)
+    # print(resultats_entropia)
     return max(resultats_entropia, key=resultats_entropia.get)
 
 def diccionary_frequencies(diccionari):
@@ -154,7 +154,7 @@ def seleccio_per_entropia_probabilidad(diccionari_possibles, data):
         entropia = resultats_entropia[paraula]
         prob = diccionari_prob[paraula]
         print(paraula, entropia, prob)
-        qualitat_paraula[paraula] = entropia+prob
+        qualitat_paraula[paraula] = entropia+prob*2
 
     print(qualitat_paraula)
     return max(qualitat_paraula, key=qualitat_paraula.get)
@@ -180,8 +180,11 @@ if __name__ == "__main__":
     print('Loaded future 1')
     with open('futures_paraules_2.json', 'r') as fo:
         data2 = json.load(fo)
-    data = {**data1, **data2}
     print('Loaded future 2')
+    with open('futures_paraules_3.json', 'r') as fo:
+        data3 = json.load(fo)
+    print('Loaded future 3')
+    data = {**data1, **data2, **data3}
 
     diccionari_possibles = {}
     for x in diccionari.keys():

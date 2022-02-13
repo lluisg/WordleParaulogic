@@ -29,7 +29,7 @@ if __name__ == "__main__":
     if False:
         words = []
 
-        files = glob(os.path.join(r"DB\raw_ca", '*'))
+        files = glob(os.path.join(r"DBzips\raw_ca", '*'))
         for f in tqdm(files):
             with open(f, encoding='latin1') as fo:
                 data = fo.read()
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         words = list(set(words))
         print(len(words), 'unique words raw')
 
-        with open('diccionari_rawfile.json', 'w') as fo:
+        with open('DB\diccionari_rawfile.json', 'w') as fo:
             json.dump(words, fo)
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -68,6 +68,7 @@ if __name__ == "__main__":
             words_clean[unidecode.unidecode(word).upper()] += words[word]
         else:
             words_clean[unidecode.unidecode(word).upper()] = words[word]
+    words_clean = {x:words_clean[x] for x in words_clean.keys() if len(x) > 2}
     print(len(words_clean), 'unique words')
 
     with open('diccionari.json', 'w') as fo:

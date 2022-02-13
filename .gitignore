@@ -1,3 +1,6 @@
-DBZIPS
 .env
+cheatFile*
+DBZIPS
 node_modules
+wordsCatalan*
+function*
