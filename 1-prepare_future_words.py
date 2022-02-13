@@ -3,7 +3,13 @@ from glob import glob
 import os
 from tqdm import tqdm
 
-def check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, paraula):
+def check_paraula_valida(paraula_input, resultats, lletra, ind_lletra, paraula):
+    resultat = resultats[ind_lletra]
+
+    if paraula_input.count(lletra) > 1 and paraula.count(lletra) <= 1:
+        # si la lletra apareix mes de una vegada a la paraula introduida
+        #i nomes una en la de referencia
+        return False
 
     if resultat == 'I':
         if paraula_input.count(lletra) == 1:
@@ -12,8 +18,13 @@ def check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, paraula):
                 return True
         else:
             # si la lletra apareix mes de una vegada a la paraula introduida
-            if paraula.count(lletra) <= 1: # descarta les paraules en que apareix mes de una vegada
-                return True
+            indices = [i for i, x in enumerate(paraula_input) if x == lletra]
+            for ind in indices:
+                if ind != ind_lletra:
+                    if resultats[ind] == "I":
+                        # si els dos cops que apareix son incorrectes
+                        if lletra not in paraula:
+                            return True
 
     elif resultat == 'M':
         if lletra in paraula and lletra != paraula[ind_lletra]:
@@ -27,8 +38,8 @@ def check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, paraula):
 
 def calcular_paraules_possibles(paraula_input, resultats, diccionari_possibles):
     paraules_possibles = list(diccionari_possibles.keys())
-    for ind_lletra, (lletra, resultat) in enumerate(zip(paraula_input, resultats)):
-        paraules_possibles[:] = [x for x in paraules_possibles if check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, x)]
+    for ind_lletra, lletra in enumerate(paraula_input):
+        paraules_possibles[:] = [x for x in paraules_possibles if check_paraula_valida(paraula_input, resultats, lletra, ind_lletra, x)]
 
     diccionari_possibles_new = {}
     for paraula in paraules_possibles:
@@ -62,9 +73,11 @@ if __name__ == "__main__":
     for x in diccionari.keys():
         if len(x) == 5 and ' ' not in x:
             diccionari_possibles[x] = diccionari[x]
-    # diccionari_possibles = {'pizza':0.5, 'tarar':0.5}
 
     resultats = get_possibles_lists(['I', 'M', 'C'], 5)
+
+    # diccionari_possibles = {'papid':0.5, 'paear':0.5}
+    # resultats = ['CCMII']
 
     futures_paraules = {}
     for word in tqdm(diccionari_possibles.keys()):
@@ -73,7 +86,10 @@ if __name__ == "__main__":
 
         for resultat in resultats:
             futures_paraules_calc = calcular_paraules_possibles(word, resultat, diccionari_possibles)
+            # print('--', word, resultat)
+            # print(futures_paraules_calc)
             futures_paraules[word][resultat] = list(futures_paraules_calc.keys())
+
 
     d1 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 0}
     d2 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 1}

@@ -190,6 +190,8 @@ if __name__ == "__main__":
     for x in diccionari.keys():
         if len(x) == 5 and ' ' not in x:
             diccionari_possibles[x] = diccionari[x]
+
+    diccionari_possibles = {'PAPER':10, 'RAPID':15}
     # print({k: v for k, v in sorted(diccionari_possibles.items(), key=lambda item: item[1])})
 
     diccionari_possibles = {x:diccionari_possibles[x] for x in list(diccionari_possibles.keys())}
@@ -197,7 +199,6 @@ if __name__ == "__main__":
     win = False
     tirades = 0
     print(len(diccionari_possibles.keys()), 'paraules possibles')
-    # print('per començar prova amb:', paraula_mes_comuna(diccionari_possibles.keys()))
     print('per començar prova amb:', seleccionar_seguent_paraula(diccionari_possibles, data, 'prob'))
     while not win and tirades <= 6:
         print('------------------------------------------------------------------------------')
