@@ -1,0 +1,17 @@
+.form-row{
+  /* display: none; */
+  margin-top: 5%;
+}
+
+#back{
+  position:absolute;
+  top:0;
+  right:0;
+}
+
+#loading{
+  visibility: hidden;
+}
+#seguent1{
+  visibility: hidden;
+}
