@@ -191,7 +191,6 @@ if __name__ == "__main__":
         if len(x) == 5 and ' ' not in x:
             diccionari_possibles[x] = diccionari[x]
 
-    diccionari_possibles = {'PAPER':10, 'RAPID':15}
     # print({k: v for k, v in sorted(diccionari_possibles.items(), key=lambda item: item[1])})
 
     diccionari_possibles = {x:diccionari_possibles[x] for x in list(diccionari_possibles.keys())}
