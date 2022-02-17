@@ -94,7 +94,7 @@ async function CheckWordInput(torn){
   if(paraula_valida){
     var paraula_input = "PIZZA";
     var resultat_input = "CCCCC";
-    
+
     const data = {paraula_input, resultat_input};
     const options = {
       method: 'POST',
@@ -114,5 +114,4 @@ async function CheckWordInput(torn){
     console.log('return false', 'seguent'+torn)
     return false
   }
-
 }

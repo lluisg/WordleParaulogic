@@ -61,6 +61,6 @@ mycol = mydb["wordsCatalan"]
 x = mycol.insert_many(mylist)
 
 # WRITING EXCEL WITH NEW TABLE ------------------------------------------------
-words.to_csv('./wordsCatalan.csv', index=False)
+words.to_csv('./mongoDB_DBs/wordsCatalan.csv'), index=False)
 print('Table saved')
 print('Done')

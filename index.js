@@ -108,6 +108,24 @@ app.post('/getAll5', async (request, response) => {
     });
 });
 
+
+app.post('/getAll5freq', async (request, response) => {
+
+    var poss_words = {}
+
+    db.collection("wordsCatalan5").find({}).project({_id:0, word:1, freq:1}).toArray(function(err, result) {
+        if (err) response.json('error');
+
+        result.forEach(function (item, index) {
+          poss_words[item['word']] = item['freq']
+        });
+
+        console.log(poss_words)
+        console.log('retornem', poss_words.length, 'paraules')
+        response.json({poss_words});
+    });
+});
+
 app.post('/getSuggerencia', async (request, response) => {
     const paraula = request.body.paraula_input;
     const resultat = request.body.resultat_input;

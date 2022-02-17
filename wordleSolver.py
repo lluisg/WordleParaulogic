@@ -83,7 +83,7 @@ def check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, paraula):
 
 def calcular_paraules_possibles(paraula_input, resultats, diccionari_possibles, file_data):
 
-    paraules_possibles = data[paraula_input][resultats]
+    paraules_possibles = file_data[paraula_input][resultats]
 
     diccionari_possibles_new = {}
     for paraula in paraules_possibles:

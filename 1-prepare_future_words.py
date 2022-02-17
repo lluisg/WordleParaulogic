@@ -6,35 +6,68 @@ from tqdm import tqdm
 def check_paraula_valida(paraula_input, resultats, lletra, ind_lletra, paraula):
     resultat = resultats[ind_lletra]
 
-    if paraula_input.count(lletra) > 1 and paraula.count(lletra) <= 1:
-        # si la lletra apareix mes de una vegada a la paraula introduida
-        #i nomes una en la de referencia
-        return False
+    # casos basiccs que es compleixen sempre:
+    # la C te prioritat sempre
+    if resultat == 'C':
+        if lletra == paraula[ind_lletra]:
+            return True
+        else:
+            return False
+    else:
+        if lletra == paraula[ind_lletra]:
+            return False
+    # la M significa que almenys apareix la lletra 1 vegada
+    if resultat == 'M':
+        if lletra not in paraula:
+            return False
 
-    if resultat == 'I':
-        if paraula_input.count(lletra) == 1:
+
+    if paraula_input.count(lletra) == 1:
+        # cas apareix 1 vegada la lletra a la paraula input
+        if resultat == 'I':
             # si la lletra nomes apareix una vegada a la paraula introduida
             if lletra not in paraula:
                 return True
-        else:
-            # si la lletra apareix mes de una vegada a la paraula introduida
-            indices = [i for i, x in enumerate(paraula_input) if x == lletra]
-            for ind in indices:
-                if ind != ind_lletra:
-                    if resultats[ind] == "I":
-                        # si els dos cops que apareix son incorrectes
-                        if lletra not in paraula:
-                            return True
+            else:
+                return False
 
-    elif resultat == 'M':
-        if lletra in paraula and lletra != paraula[ind_lletra]:
-            return True
+        elif resultat == 'M':
+            if lletra != paraula[ind_lletra]:
+                return True
+            else:
+                return False
 
-    elif resultat == 'C':
-        if lletra == paraula[ind_lletra]:
-            return True
+    else:
+        # cas la lletra apareix mes de 1 vegada a la paraula input
 
-    return False
+        # busquem lindex de laltre resultat amb la mateixa lletra
+        indices = [i for i, x in enumerate(paraula_input) if x == lletra]
+        for ind in indices:
+            if ind != ind_lletra:
+                if resultats[ind_lletra] == 'I' and resultats[ind] == "I":
+                    # si els dos cops que apareix son incorrectes
+                    if lletra not in paraula:
+                        return True
+                    else:
+                        return False
+
+                elif (resultats[ind_lletra] == "I" and resultats[ind] == 'M') or \
+                    (resultats[ind_lletra] == 'I' and resultats[ind] == "C") or \
+                    (resultats[ind_lletra] == 'M' and resultats[ind] == "I") or \
+                    (resultats[ind_lletra] == 'C' and resultats[ind] == "I"):
+                        if paraula.count(lletra) > 1:
+                            return False
+
+                elif (resultats[ind_lletra] == "M" and resultats[ind] == 'M') or \
+                    (resultats[ind_lletra] == 'M' and resultats[ind] == "C") or \
+                    (resultats[ind_lletra] == 'C' and resultats[ind] == "M") or \
+                    (resultats[ind_lletra] == 'C' and resultats[ind] == "C"):
+                        if paraula.count(lletra) <= 1:
+                            return False
+
+    # print('endend', paraula_input, paraula, resultats, resultat, ind_lletra)
+    return True
+
 
 def calcular_paraules_possibles(paraula_input, resultats, diccionari_possibles):
     paraules_possibles = list(diccionari_possibles.keys())
@@ -64,7 +97,10 @@ def get_possibles_lists(posibilities, lenn):
 if __name__ == "__main__":
 
     diccionary_file = r"diccionari.json"
-    futur_file = r"futures_paraules.json"
+    futur_path = r"futur_files"
+    if not os.path.exists(futur_path):
+        os.mkdir(futur_path)
+    futur_file = os.path.join(futur_path, r"futures_paraules.json")
 
     with open(diccionary_file, 'r') as fo:
         diccionari = json.load(fo)
@@ -76,8 +112,10 @@ if __name__ == "__main__":
 
     resultats = get_possibles_lists(['I', 'M', 'C'], 5)
 
-    # diccionari_possibles = {'papid':0.5, 'paear':0.5}
+    # diccionari_possibles = {'aaaaa':0.3, 'zzzzz':0.2, 'papid':0.5, 'paear':0.5}
+    # diccionari_possibles = {'esser':0.5, 'nalga':0.5}
     # resultats = ['CCMII']
+    # resultats = ['IIIII']
 
     futures_paraules = {}
     for word in tqdm(diccionari_possibles.keys()):
@@ -90,14 +128,16 @@ if __name__ == "__main__":
             # print(futures_paraules_calc)
             futures_paraules[word][resultat] = list(futures_paraules_calc.keys())
 
+    print('Creant diccionaris')
+    d_lletres = {}
+    for i in range(1, 27):
+        d_lletres[i] = {}
 
-    d1 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 0}
-    d2 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 1}
-    d3 = {key:futures_paraules[key] for i, key in enumerate(futures_paraules) if i % 3 == 2}
+    for paraula in tqdm(futures_paraules.keys()):
+        primera_lletra = paraula[0]
+        number = ord(primera_lletra) - 96
+        d_lletres[number][paraula] = futures_paraules[paraula]
 
-    with open(futur_file.replace('.json', '_1.json'), 'w') as fo:
-        json.dump(d1, fo)
-    with open(futur_file.replace('.json', '_2.json'), 'w') as fo:
-        json.dump(d2, fo)
-    with open(futur_file.replace('.json', '_3.json'), 'w') as fo:
-        json.dump(d3, fo)
+    for i in range(1, 27):
+        with open(futur_file.replace('.json', '_'+str(i)+'.json'), 'w') as fo:
+            json.dump(d_lletres[i], fo)

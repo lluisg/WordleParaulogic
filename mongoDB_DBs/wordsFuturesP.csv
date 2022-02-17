@@ -1,0 +1,9 @@
+_id,Paraula,Resultat,Paraula_poss
+0,papid,IIIII,zzzzz
+1,papid,ICIII,aaaaa
+2,papid,CCIII,paear
+3,papid,CCCCC,papid
+4,paear,IIIII,zzzzz
+5,paear,ICICI,aaaaa
+6,paear,CCIII,papid
+7,paear,CCCCC,paear
