@@ -112,7 +112,8 @@ def seleccio_per_entropia(diccionari_possibles, data):
     resultats_entropia = {}
     resultats = get_combinations(['I', 'M', 'C'], 5)
 
-    for paraula_possible in sorted(list(diccionari_possibles.keys())[:30]):
+    for paraula_possible in sorted(list(diccionari_possibles.keys())):
+    # for paraula_possible in sorted(list(diccionari_possibles.keys())[:30]):
         entropia_paraula = 0
         for resultat in resultats:
 
