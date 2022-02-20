@@ -1,34 +1,7 @@
-import json
-from glob import glob
-import os
-import random
+import sys, os
+from csv import reader
 import math
-from itertools import combinations
-import copy
-
-def paraula_mes_comuna(paraules_possibles):
-    lletres_comunes = {0:{}, 1:{}, 2:{}, 3:{}, 4:{}}
-    for paraula in paraules_possibles:
-        for ind, lletra in enumerate(paraula):
-
-            if lletra not in lletres_comunes[ind].keys():
-                lletres_comunes[ind][lletra] = 0
-            lletres_comunes[ind][lletra] += 1
-
-    millor_paraula = None
-    max_punt = 0
-    for paraula in paraules_possibles:
-        if len(list(set(paraula))) == 5:
-            punt = 0
-            for ind, lletra in enumerate(paraula):
-                punt += lletres_comunes[ind][lletra]
-
-            if punt > max_punt:
-                max_punt = punt
-                millor_paraula = paraula
-
-    return millor_paraula
-
+from tqdm import tqdm
 
 def demanar_input():
 
@@ -60,36 +33,18 @@ def demanar_input():
 
     return paraula, resultats
 
-def check_paraula_valida(paraula_input, resultat, lletra, ind_lletra, paraula):
-    if resultat == 'I':
-        if paraula_input.count(lletra) == 1:
-            # si la lletra nomes apareix una vegada a la paraula introduida
-            if lletra not in paraula:
-                return True
-        else:
-            # si la lletra apareix mes de una vegada a la paraula introduida
-            if paraula.count(lletra) == 1: # descarta les paraules en que apareix mes de una vegada
-                return True
+def calcular_paraules_possibles(ind, resultat, inds_disponibles, paraules_resultat, info_ind2words):
 
-    elif resultat == 'M':
-        if lletra in paraula and lletra != paraula[ind_lletra]:
-            return True
+    futures = paraules_resultat[ind][resultat]
 
-    elif resultat == 'C':
-        if lletra == paraula[ind_lletra]:
-            return True
+    diccionari_possibles_new = []
+    for ind_fut in futures:
+        ind_fut = str(ind_fut)
+        if ind_fut in inds_disponibles:
+            diccionari_possibles_new.append(ind_fut)
+            # diccionari_possibles_new[ind_fut] = info_ind2words[ind_fut]['freq']
 
-    return False
-
-def calcular_paraules_possibles(paraula_input, resultats, diccionari_possibles, file_data):
-
-    paraules_possibles = file_data[paraula_input][resultats]
-
-    diccionari_possibles_new = {}
-    for paraula in paraules_possibles:
-        if paraula in diccionari_possibles.keys():
-            diccionari_possibles_new[paraula] = diccionari_possibles[paraula]
-
+    # print('futures', ind, resultat, ':', len(futures), '->', len(diccionari_possibles_new))
     return diccionari_possibles_new
 
 def entropia_value(prob):
@@ -108,117 +63,141 @@ def get_combinations(posibilities, lenn):
 
     return to_return
 
-def seleccio_per_entropia(diccionari_possibles, data):
+def diccionary_frequencies(inds_disponibles, info_ind2words):
+    total_prob = 0
+    for ind in inds_disponibles:
+        total_prob += int(info_ind2words[ind]['freq'])
+
+    dicc_prob = {}
+    for k in inds_disponibles:
+        dicc_prob[k] = int(info_ind2words[k]['freq'])/total_prob
+    return dicc_prob
+
+def calculate_entropia_probabilidad(inds_disponibles, paraules_resultat, info_ind2words):
     resultats_entropia = {}
     resultats = get_combinations(['I', 'M', 'C'], 5)
 
-    for paraula_possible in sorted(list(diccionari_possibles.keys())):
-    # for paraula_possible in sorted(list(diccionari_possibles.keys())[:30]):
+
+    print('calculant entropia')
+    for ind in tqdm(sorted(inds_disponibles)):
+        # print('paraula:', ind)
         entropia_paraula = 0
         for resultat in resultats:
 
-            futures_paraules = calcular_paraules_possibles(paraula_possible, resultat, diccionari_possibles, data)
-            prob = float(len(futures_paraules))/float(len(diccionari_possibles.keys()))
+            futures_paraules = calcular_paraules_possibles(ind, resultat, inds_disponibles, paraules_resultat, info_ind2words)
+            prob = float(len(futures_paraules))/float(len(inds_disponibles))
             entropia = entropia_value(prob)
             entropia_paraula += entropia
+            # print(resultat, ':', futures_paraules, '--', inds_disponibles, ':', prob, entropia, entropia_paraula)
 
-        print(paraula_possible, entropia_paraula)
-        resultats_entropia[paraula_possible] = entropia_paraula
-
-    # print(resultats_entropia)
-    return max(resultats_entropia, key=resultats_entropia.get)
-
-def diccionary_frequencies(diccionari):
-    total_prob = sum(diccionari.values())
-    for k in diccionari.keys():
-        diccionari[k] = diccionari[k]/total_prob
-    return diccionari
-
-def seleccio_per_entropia_probabilidad(diccionari_possibles, data):
-    resultats_entropia = {}
-    resultats = get_combinations(['I', 'M', 'C'], 5)
-
-    for paraula_possible in sorted(list(diccionari_possibles.keys())):
-        entropia_paraula = 0
-        for resultat in resultats:
-
-            futures_paraules = calcular_paraules_possibles(paraula_possible, resultat, diccionari_possibles, data)
-            prob = float(len(futures_paraules))/float(len(diccionari_possibles.keys()))
-            entropia = entropia_value(prob)
-            entropia_paraula += entropia
-
-        resultats_entropia[paraula_possible] = entropia_paraula
+        resultats_entropia[ind] = entropia_paraula
+        # print('entropia:', resultats_entropia[ind])
 
     qualitat_paraula = {}
-    diccionari_prob = diccionary_frequencies(diccionari_possibles)
-    for paraula in diccionari_possibles.keys():
-        entropia = resultats_entropia[paraula]
-        prob = diccionari_prob[paraula]
-        print(paraula, entropia, prob)
-        qualitat_paraula[paraula] = entropia+prob*2
+    diccionari_prob = diccionary_frequencies(inds_disponibles, info_ind2words)
+    for ind in inds_disponibles:
+        entropia = resultats_entropia[ind]
+        prob = diccionari_prob[ind]
+        print(ind, info_ind2words[ind]['word'], entropia, prob)
+        qualitat_paraula[ind] = entropia+prob*2
 
-    print(qualitat_paraula)
-    return max(qualitat_paraula, key=qualitat_paraula.get)
+    return qualitat_paraula
+    # return max(qualitat_paraula, key=qualitat_paraula.get)
 
-def seleccionar_seguent_paraula(diccionari_possibles, data, ALGORITME = "random"):
-    if ALGORITME == "random":
-        return random.choice(list(diccionari_possibles.keys()))
-    elif ALGORITME == "entropia":
-        return seleccio_per_entropia(diccionari_possibles, data)
-    elif ALGORITME == "prob":
-        return seleccio_per_entropia_probabilidad(diccionari_possibles, data)
+def CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words):
+    '''
+    word_ind: paraula input
+    resultat: resultat input
+    inds_disponibles: paraules que encara no han estat descartades de la llista
+    paraules_resultat: diccionari amb les paraules possibles segons la paraula input i el resultat input (especific començat amb una lletra)
+    info_ind2words: diccionari de la informaciod de ind, paraula i freq amb el index com a key
+    '''
 
+    valors_paraules = calculate_entropia_probabilidad(inds_disponibles, paraules_resultat, info_ind2words)
+    print('vp', valors_paraules)
+
+
+    ordered_list = [(k, valors_paraules[k]) for k in sorted(valors_paraules, key=valors_paraules.get, reverse=True)]
+    ordered_list_value = [x[0] for x in ordered_list]
+
+    return ordered_list_value[0], ordered_list_value[1:5]
 
 if __name__ == "__main__":
 
-    diccionary_file = r"diccionari.json"
-    with open(diccionary_file, 'r') as fo:
-        diccionari = json.load(fo)
-    print('Loaded dictionary')
+    with open('mongoDB_DBs/wordsFuturesTotal.csv', 'r') as read_obj:
+        csv_reader = reader(read_obj)
+        header = next(csv_reader)
+        if header != None:
+            paraules_resultat = {}
+            for row in csv_reader:
+                if row[1] not in paraules_resultat:
+                    paraules_resultat[row[1]] = {}
+                paraules_resultat[row[1]][row[2]] = row[3]
 
-    with open('futures_paraules_1.json', 'r') as fo:
-        data1 = json.load(fo)
-    print('Loaded future 1')
-    with open('futures_paraules_2.json', 'r') as fo:
-        data2 = json.load(fo)
-    print('Loaded future 2')
-    with open('futures_paraules_3.json', 'r') as fo:
-        data3 = json.load(fo)
-    print('Loaded future 3')
-    data = {**data1, **data2, **data3}
+    for caso, ind in enumerate(paraules_resultat.keys()):
+        for resultat in paraules_resultat[ind].keys():
+            inds = paraules_resultat[ind][resultat]
+            inds = inds.replace('[', '').replace(']', '').replace(' ', '').split(',')
+            paraules_resultat[ind][resultat] = inds
 
-    diccionari_possibles = {}
-    for x in diccionari.keys():
-        if len(x) == 5 and ' ' not in x:
-            diccionari_possibles[x] = diccionari[x]
+    inds_disponibles = []
+    with open('mongoDB_DBs/wordsCatalan5.csv', 'r') as read_obj:
+        csv_reader = reader(read_obj)
+        header = next(csv_reader)
+        if header != None:
+            info_words2ind = {}
+            info_ind2words = {}
+            for row in csv_reader:
+                if row[1] not in info_words2ind:
+                    info_words2ind[row[1]] = {}
+                info_words2ind[row[1]]['freq'] = row[2]
+                info_words2ind[row[1]]['ind'] = row[3]
 
-    # print({k: v for k, v in sorted(diccionari_possibles.items(), key=lambda item: item[1])})
+                if row[3] not in info_ind2words:
+                    info_ind2words[row[3]] = {}
+                info_ind2words[row[3]]['freq'] = row[2]
+                info_ind2words[row[3]]['word'] = row[1]
 
-    diccionari_possibles = {x:diccionari_possibles[x] for x in list(diccionari_possibles.keys())}
+                inds_disponibles.append(row[3])
+
 
     win = False
     tirades = 0
-    print(len(diccionari_possibles.keys()), 'paraules possibles')
-    print('per començar prova amb:', seleccionar_seguent_paraula(diccionari_possibles, data, 'prob'))
-    while not win and tirades <= 6:
+    # inds_disponibles = ['1', '2', '3', '4']
+    print(len(inds_disponibles), 'paraules possibles')
+    # word_ind = info_words2ind[word]['ind']
+    # best_ind, _ = CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words)
+    best_ind = '1847'
+    best_word = info_ind2words[best_ind]['word']
+    print('per començar prova amb:', best_word, best_ind)
+    while not win and tirades < 6:
         print('------------------------------------------------------------------------------')
         print('TORN', tirades+1)
 
-        paraula, resultats = demanar_input()
+        paraula, resultat = demanar_input()
         # paraula, resultats = 'QOECR', 'ICMIC'
-        diccionari_possibles = calcular_paraules_possibles(paraula, resultats, diccionari_possibles, data)
-        print('Queden', len(diccionari_possibles), 'paraules possibles')
+        ind = info_words2ind[paraula]['ind']
+        inds_disponibles = calcular_paraules_possibles(ind, resultat, inds_disponibles, paraules_resultat, info_ind2words)
+        print('Queden', len(inds_disponibles), 'paraules possibles')
+        tirades += 1
+        print('tirades', tirades)
 
-        if len(diccionari_possibles) == 1:
-            seguent_paraula = list(diccionari_possibles.keys())[0]
+        if len(inds_disponibles) == 0:
+            print('No hi ha cap paraula que compleixi aquestes condicions...\n')
+            win = True
+
+        elif tirades >= 6 and resultat != 'CCCCC':
+            print('Hem perdut... :(')
+
+        elif len(inds_disponibles) == 1:
+            seguent_ind = inds_disponibles[0]
+            seguent_paraula = info_ind2words[seguent_ind]['word']
             print('Hem guanyat!\nParaula guanyadora: ', '--'+seguent_paraula+'--', '\n')
             win = True
 
         else:
-            seguent_paraula = seleccionar_seguent_paraula(diccionari_possibles, data, 'prob')
-
-            print('proxima paraula: ', '--'+seguent_paraula+'--', '\n')
-            tirades += 1
-
-        if tirades > 6:
-            print('Hem perdut... :(')
+            seguent_ind, best5_ind = CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words)
+            seguent_paraula = info_ind2words[seguent_ind]['word']
+            best5_word = [info_ind2words[x]['word'] for x in best5_ind]
+            # seguent_paraula = seleccionar_seguent_paraula(diccionari_possibles, data, 'prob')
+            print('proxima paraula: ', '--'+seguent_paraula+'---- (', best5_word, ')\n')
