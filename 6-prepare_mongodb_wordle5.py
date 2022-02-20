@@ -3,15 +3,6 @@ import json
 from tqdm import tqdm
 import os
 
-# MIRAR LA POSSIBILITAT DE REDUIR LA INFORMACIO EN LES DBS
-# AFEGINT UN INDEX A CADA PARAULA AL DB BASE
-# I A LES ALTRES GUARDAR EL INDEX NOMES
-# (LA FREQ I EL NOM ES PODEN MIRAR A PARTIR DE L'INDEX)
-
-# RUUUUUUUUUN -----------> 1, 2, 4, 5, 6
-# I MIRARSE COM CANVIARIA EL CAS DE EL SOLVER EN SI
-
-
 if __name__ == "__main__":
 
     input_path = r"futur_csvs"

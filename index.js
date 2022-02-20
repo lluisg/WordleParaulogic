@@ -15,6 +15,7 @@ var _ = require('underscore');
 const CONNECTION_URL = process.env.CONNECTION_URL;
 const DATABASE_NAME = "wordleDB";
 
+
 // CONNECT MONGODB DATABASE
 const port = process.env.PORT || 3000;
 var server = app.listen(port, () => {
@@ -90,6 +91,67 @@ function FilterPossibleWords(lletra, lletres, paraules) {
 // PART WORDLE -----------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+app.post('/load_InfoWords5', async (request, response) => {
+
+    db.collection("wordsCatalan5").find({}).project({_id:0, word:1, freq:1, ind:1}).toArray(function(err, result) {
+
+        if (err) response.json('error');
+
+        var info_ind2words = {}
+        var info_words2ind = {}
+        result.forEach(function (item, index) {
+            info_ind2words[item['ind']] = {}
+            info_ind2words[item['ind']]['freq'] = item['freq']
+            info_ind2words[item['ind']]['word'] = item['word']
+            info_words2ind[item['word']] = {}
+            info_words2ind[item['word']]['freq'] = item['freq']
+            info_words2ind[item['word']]['ind'] = item['ind']
+        });
+        // console.log(info_ind2words)
+        console.log('Returning info load_InfoWords5')
+        response.json({info_ind2words, info_words2ind});
+    });
+});
+
+app.post('/load_ParaulesResultat', async (request, response) => {
+
+    db.collection("wordsFuturesTotal_small").find({}).project({_id:0, ind_word:1, resultat:1, ind_possibles:1}).toArray(function(err, result) {
+
+        if (err) response.json('error');
+        console.log('recieved db Futures')
+
+        var paraules_resultat = {}
+        result.forEach(function (item, index) {
+            ind_word = item['ind_word'].toString()
+            resultat = item['resultat'].toString()
+            ind_possibles = item['ind_possibles']
+            // console.log('---')
+            // console.log(ind_word, resultat, ind_possibles)
+
+            var keys = Object.keys(paraules_resultat);
+            // console.log(keys, keys.includes(ind_word))
+            if (!keys.includes(ind_word)){
+                paraules_resultat[ind_word] = {}
+            }
+
+            if(hasNumber(ind_possibles)){
+              array_inds = ind_possibles.replace('[', '').replace(']', '').replace(' ', '').split(',')
+              paraules_resultat[ind_word][resultat] = array_inds
+            }else{
+              paraules_resultat[ind_word][resultat] = []
+            }
+        });
+        // console.log(paraules_resultat)
+        console.log('Returning info load_ParaulesResultat')
+        response.json({paraules_resultat});
+    });
+});
+
+function hasNumber(myString) {
+  return /\d/.test(myString);
+}
+
+
 
 app.post('/getAll5', async (request, response) => {
 
