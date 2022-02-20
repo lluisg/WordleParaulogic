@@ -8,69 +8,96 @@ var all_loaded = false;
 
 async function getWords5(){
   document.getElementById("loading").style.visibility="visible";
-  const data = {};
-  const options = {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers:{'Content-Type': 'application/json'}
-  };
-  const response = await fetch('/load_InfoWords5', options);
-  const words_info = await response.json();
-  console.log('DB received:');
-  console.log(words_info);
-  info_ind2words = words_info.info_ind2words
-  info_words2ind = words_info.info_words2ind
-  // console.log(info_ind2words);
-  // console.log(info_words2ind);
-  inds_disponibles = []
-  all_words5 = []
-  for (const [key, value] of Object.entries(info_ind2words)) {
-    inds_disponibles.push(key)
-    all_words5.push(key)
+  try{
+    const data = {};
+    const options = {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers:{'Content-Type': 'application/json'}
+    };
+    const response = await fetch('/load_InfoWords5', options);
+    const words_info = await response.json();
+    console.log('DB received:');
+    console.log(words_info);
+    if(words_info == 'error'){
+      ErrorLoadingInfo()
+    }
+    info_ind2words = words_info.info_ind2words
+    info_words2ind = words_info.info_words2ind
+    // console.log(info_ind2words);
+    // console.log(info_words2ind);
+    inds_disponibles = []
+    all_words5 = []
+    for (const [key, value] of Object.entries(info_ind2words)) {
+      inds_disponibles.push(key)
+      all_words5.push(key)
+    }
+    CheckAllLoaded();
+  }catch(err){
+    ErrorLoadingInfo()
   }
-  CheckAllLoaded();
 }
 
 async function getFutures(){
-  document.getElementById("loading").style.visibility="visible";
-  const data = {};
-  const options = {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers:{'Content-Type': 'application/json'}
-  };
-  console.log('asking for futures')
-  const response = await fetch('/load_ParaulesResultat', options);
-  const futures_info = await response.json();
-  console.log('DB received:');
-  console.log(futures_info);
-  paraules_resultat = futures_info.paraules_resultat
-  // console.log(paraules_resultat);
-  CheckAllLoaded();
+  try{
+    document.getElementById("loading").style.visibility="visible";
+    const data = {};
+    const options = {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers:{'Content-Type': 'application/json'}
+    };
+    console.log('asking for futures')
+    const response = await fetch('/load_ParaulesResultat', options);
+    const futures_info = await response.json();
+    if(futures_info == 'error'){
+      ErrorLoadingInfo()
+    }
+    console.log('DB received:');
+    console.log(futures_info);
+    paraules_resultat = futures_info.paraules_resultat
+    // console.log(paraules_resultat);
+    CheckAllLoaded();
+  }catch(err){
+    ErrorLoadingInfo()
+  }
 }
 
 function CheckAllLoaded(){
   //   document.getElementById("seguent"+torn).textContent = "Paraula Invàlida"
   if(!(inds_disponibles.length == 0 || all_words5.length == 0 || paraules_resultat.length == 0)){
     document.getElementById("loading").style.visibility="hidden";
+    document.getElementById("best_suggerencia").innerHTML = "ARRIA";
     all_loaded = true;
   }
 }
 
-// FUNCIONAMENT DE LA WEB ------------------------------------------------------
+function ErrorLoadingInfo(){
+  document.getElementById("loading").innerHTML = "Hi ha hagut un error rebent la informació.<br>Siusplau reinicia la pàgina.";
+  document.getElementById("loading").classList.remove('bg-warning')
+  document.getElementById("loading").classList.add('bg-danger')
 
-var list_all5_global = []
+}
+
+
+// FUNCIONAMENT DE LA WEB ------------------------------------------------------
+var torn_general = 1
 
 function nextInput(pos){
   pos_next = parseInt(pos)+1;
-  id_next = "lletra"+pos_next.toString();
-  col = id_next.slice(-1)
-  row = id_next.slice(-2, -1)
+  id_current = "lletra"+pos.toString()
+  value_lletra = document.getElementById(id_current).value;
 
-  if(col == '6'){
-    document.getElementById('seguent'+row).style.visibility = "visible";
-  }else{
-    document.getElementById(id_next).focus();
+  if(value_lletra.length >= 1){
+    id_next = "lletra"+pos_next.toString();
+    col = id_next.slice(-1)
+    row = id_next.slice(-2, -1)
+
+    if(col == '6' && torn_general == row){
+      document.getElementById('seguent'+row).style.visibility = "visible";
+    }else if(col != '6'){
+      document.getElementById(id_next).focus();
+    };
   };
 };
 
@@ -103,36 +130,47 @@ async function makeNextSuggerencia(torn){
       var paraula = GetParaula(torn)
       var resultat = GetResultat(torn)
 
-      TODO: COMPROVAR PERQUE SEMPRE RETORNA QUE NO HI HA CAP PARAULA POSSIBLE
-
       if(resultat.length == 5 && paraula.length == 5){
         var ind = info_words2ind[paraula]['ind']
+        console.log('infoo', paraula, ind, resultat)
+        console.log('Queden', inds_disponibles.length, 'paraules possibles')
+        console.log(paraules_resultat[ind])
+        console.log(paraules_resultat[ind][resultat])
         inds_disponibles = CalcularParaulesPossibles(ind, resultat, inds_disponibles, paraules_resultat, info_ind2words);
         console.log('Queden', inds_disponibles.length, 'paraules possibles')
+        console.log(inds_disponibles)
 
         if(inds_disponibles.length == 0){
             console.log('No hi ha cap paraula que compleixi aquestes condicions...\n')
             GameEnded('lost');
+            CanviarParaulaSuggerida('-----', [''])
 
-        }else if(torn == 6 && resultat != 'CCCCC'){
+        }else if(torn_general == 6 && resultat != 'CCCCC'){
           GameEnded('lost');
+          CanviarParaulaSuggerida('-----', [''])
 
-        }else if(len(inds_disponibles) == 1){
+        }else if(inds_disponibles.length == 1){
           seguent_ind = inds_disponibles[0]
           seguent_paraula = info_ind2words[seguent_ind]['word']
           console.log('Hem guanyat!\nParaula guanyadora: ', '--'+seguent_paraula+'--', '\n')
+          CanviarParaulaSuggerida(seguent_paraula, [''])
           GameEnded('won');
 
         }else{
-            seguent_ind, other4_inds = CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words)
+            best_inds = CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words)
+            seguent_ind = best_inds['best']
+            other4_inds = best_inds['other']
+            console.log('suggerencia:', seguent_ind, other4_inds)
 
             seguent_paraula = info_ind2words[seguent_ind]['word']
             other4_words = []
             other4_inds.forEach((x, i) => {
               other4_words.push(info_ind2words[x]['word']);
             });
-            console.log('proxima paraula: ', '--'+seguent_paraula+'---- (', best5_word, ')\n')
-            TODO: CAMBIAR EL TEXT DE SOTA PER LA PARAULA SUGGERIDA
+            console.log('proxima paraula: ', '--'+seguent_paraula+'---- (', other4_words, ')\n')
+
+            CanviarParaulaSuggerida(seguent_paraula, other4_words)
+            torn_general += 1;
         }
 
         document.getElementById('seguent'+torn).style.visibility = "hidden";
@@ -166,8 +204,13 @@ async function CheckWordInput(torn){
   // console.log('listall5', all_words5.length);
   var paraula_valida = true;
   var paraula = GetParaula(torn);
-  var ind_paraula = info_words2ind[paraula]['ind']
-  console.log('paraula input', paraula, ind_paraula);
+  try {
+    var ind_paraula = info_words2ind[paraula]['ind']
+  }catch(err){
+    // si la palabra no existe en nuestra lista dara error
+    paraula_valida = false
+  }
+  console.log('paraula input', paraula, ind_paraula, 'exists-', paraula_valida);
 
   if(paraula_valida){
     paraula_valida = false;
@@ -214,17 +257,31 @@ function GetResultat(torn){
 }
 
 function GameEnded(result){
-  TODO: NETEJAR PANTALLA I INDICAR EL CAS, AFEGIR BOTO PER REPETIR, EL CUAL TORNI A CARREGAR LA PAGINA
   if(result == 'won'){
-    console.log('Hem guayat!')
+    document.getElementById("best_suggerencia").classList.add('bg-success')
+    document.getElementById("boto_reestart").style.visibility = 'visible';
+    console.log('Hem guanyat!')
 
   }else if(result == 'lost'){
+    document.getElementById("best_suggerencia").classList.add('bg-danger')
+    document.getElementById("boto_reestart").style.visibility = 'visible';
     console.log('Hem perdut...')
 
   }else{
     console.log('No se que ha pasao')
 
   }
+}
+
+function CanviarParaulaSuggerida(paraula, altres){
+  text_altres = '';
+  altres.forEach((item, i) => {
+    text_altres += item+', ';
+  });
+  text_altres = text_altres.slice(0, -2)
+
+  document.getElementById("best_suggerencia").innerHTML = paraula;
+  document.getElementById("other_suggerencia").innerHTML = text_altres;
 }
 
 // FUNCIONS SUGGERENCIA --------------------------------------------------------
@@ -234,26 +291,31 @@ function CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words)
   valors_paraules = CalculateEntropiaProbabilidad(inds_disponibles, paraules_resultat, info_ind2words)
   console.log('vp', valors_paraules)
 
-  // Create items array
-  var items = Object.keys(valors_paraules).map(function(key) {
-    return [key, valors_paraules[key]];
-  });
+  // order by value
+  var ordered_values = []
+  var ordered_inds = []
+  for (const [key, value] of Object.entries(valors_paraules)) {
+    var found_position = false
+    for(let j = 0; j <= ordered_values.length-1; j++){
+      if(value > ordered_values[j]){
+        ordered_values.splice(j, 0, value)
+        ordered_inds.splice(j, 0, key)
+        found_position = true
+        break;
 
-  // Sort the array based on the second element
-  items.sort(function(first, second) {
-    return second[1] - first[1];
-  });
-
-  var ordered_list_value = [];
-  for (var key in items) {
-      if (items.hasOwnProperty(key)) {
-          ordered_list_value.push(key);
       }
+    }
+    if(!found_position){
+      ordered_values.push(value)
+      ordered_inds.push(key)
+    }
   }
 
-  best_ind = ordered_list_value.slice(0)
-  best5_ind = ordered_list_value.slice(1,5)
-  return best_ind, best5_ind
+
+  best_ind = ordered_inds.slice(0, 1)
+  best5_ind = ordered_inds.slice(1, 5)
+
+  return {'best':best_ind, 'other':best5_ind}
 }
 
 function CalculateEntropiaProbabilidad(inds_disponibles, paraules_resultat, info_ind2words){
@@ -333,7 +395,7 @@ function CalcularParaulesPossibles(ind, resultat, inds_disponibles, paraules_res
 
     diccionari_possibles_new = []
     futures.forEach(function (ind_fut, index) {
-        ind_fut = str(ind_fut)
+        ind_fut = ind_fut.toString()
 
         if(inds_disponibles.includes(ind_fut)){
           diccionari_possibles_new.push(ind_fut)

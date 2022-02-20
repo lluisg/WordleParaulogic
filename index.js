@@ -91,6 +91,7 @@ function FilterPossibleWords(lletra, lletres, paraules) {
 // PART WORDLE -----------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
 app.post('/load_InfoWords5', async (request, response) => {
 
     db.collection("wordsCatalan5").find({}).project({_id:0, word:1, freq:1, ind:1}).toArray(function(err, result) {
@@ -115,7 +116,7 @@ app.post('/load_InfoWords5', async (request, response) => {
 
 app.post('/load_ParaulesResultat', async (request, response) => {
 
-    db.collection("wordsFuturesTotal_small").find({}).project({_id:0, ind_word:1, resultat:1, ind_possibles:1}).toArray(function(err, result) {
+    db.collection("wordsFuturesTotal").find({}).project({_id:0, ind_word:1, resultat:1, ind_possibles:1}).toArray(function(err, result) {
 
         if (err) response.json('error');
         console.log('recieved db Futures')
@@ -135,7 +136,7 @@ app.post('/load_ParaulesResultat', async (request, response) => {
             }
 
             if(hasNumber(ind_possibles)){
-              array_inds = ind_possibles.replace('[', '').replace(']', '').replace(' ', '').split(',')
+              array_inds = ind_possibles.replace('[', '').replace(']', '').replace(' ', '').replace(/\s+/g,'').split(',')
               paraules_resultat[ind_word][resultat] = array_inds
             }else{
               paraules_resultat[ind_word][resultat] = []
@@ -150,63 +151,3 @@ app.post('/load_ParaulesResultat', async (request, response) => {
 function hasNumber(myString) {
   return /\d/.test(myString);
 }
-
-
-
-app.post('/getAll5', async (request, response) => {
-
-    var poss_words = []
-
-    db.collection("wordsCatalan5").find({}).project({_id:0, word:1}).toArray(function(err, result) {
-        if (err) response.json('error');
-
-        result.forEach(function (item, index) {
-            poss_words.push(item['word'])
-        });
-
-        console.log(poss_words)
-        console.log('retornem', poss_words.length, 'paraules')
-        response.json({poss_words});
-    });
-});
-
-
-app.post('/getAll5freq', async (request, response) => {
-
-    var poss_words = {}
-
-    db.collection("wordsCatalan5").find({}).project({_id:0, word:1, freq:1}).toArray(function(err, result) {
-        if (err) response.json('error');
-
-        result.forEach(function (item, index) {
-          poss_words[item['word']] = item['freq']
-        });
-
-        console.log(poss_words)
-        console.log('retornem', poss_words.length, 'paraules')
-        response.json({poss_words});
-    });
-});
-
-app.post('/getSuggerencia', async (request, response) => {
-    const paraula = request.body.paraula_input;
-    const resultat = request.body.resultat_input;
-
-    var poss_words = []
-    var sugg = "aa"
-
-    // db.collection("wordsCatalan5").find({}).project({_id:0, word:1}).toArray(function(err, result) {
-    //     if (err) response.json('error');
-    //
-    //     result.forEach(function (item, index) {
-    //         poss_words.push(item['word'])
-    //     });
-    //
-    //     console.log(poss_words)
-    //     console.log('retornem', poss_words.length, 'paraules')
-    //     response.json({poss_words});
-    // });
-    console.log('got suggerencia', sugg)
-    response.json({sugg});
-
-});
