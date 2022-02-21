@@ -148,6 +148,44 @@ app.post('/load_ParaulesResultat', async (request, response) => {
     });
 });
 
+app.post('/load_ResultatParaulaX', async (request, response) => {
+
+    const paraules = request.body.paraules_not_in;
+    console.log('Condition:', paraules)
+
+    db.collection("wordsFuturesTotal").find({ ind_word: {$in: paraules} }).project({_id:0, ind_word:1, resultat:1, ind_possibles:1}).toArray(function(err, result) {
+
+        if (err) response.json('error');
+        console.log('recieved db futuraX')
+        console.log(result)
+
+        var paraules_resultat = {}
+        result.forEach(function (item, index) {
+            ind_word = item['ind_word'].toString()
+            resultat = item['resultat'].toString()
+            ind_possibles = item['ind_possibles']
+            // console.log('---')
+            // console.log(ind_word, resultat, ind_possibles)
+
+            var keys = Object.keys(paraules_resultat);
+            // console.log(keys, keys.includes(ind_word))
+            if (!keys.includes(ind_word)){
+                paraules_resultat[ind_word] = {}
+            }
+
+            if(hasNumber(ind_possibles)){
+              array_inds = ind_possibles.replace('[', '').replace(']', '').replace(' ', '').replace(/\s+/g,'').split(',')
+              paraules_resultat[ind_word][resultat] = array_inds
+            }else{
+              paraules_resultat[ind_word][resultat] = []
+            }
+        });
+        // console.log(paraules_resultat)
+        console.log('Returning info load_ResultatParaulaX')
+        response.json({paraules_resultat});
+    });
+});
+
 function hasNumber(myString) {
   return /\d/.test(myString);
 }
