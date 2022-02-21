@@ -38,31 +38,6 @@ async function getWords5(){
   }
 }
 
-async function getFutures(){
-  try{
-    document.getElementById("loading").style.visibility="visible";
-    const data = {};
-    const options = {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers:{'Content-Type': 'application/json'}
-    };
-    console.log('asking for futures')
-    const response = await fetch('/load_ParaulesResultat', options);
-    const futures_info = await response.json();
-    if(futures_info == 'error'){
-      ErrorLoadingInfo()
-    }
-    console.log('DB received:');
-    console.log(futures_info);
-    paraules_resultat = futures_info.paraules_resultat
-    // console.log(paraules_resultat);
-    CheckAllLoaded();
-  }catch(err){
-    ErrorLoadingInfo()
-  }
-}
-
 async function getFuturaX(ind_paraules){
   try{
     paraules_not_in = []
@@ -101,19 +76,11 @@ async function getFuturaX(ind_paraules){
   }
 }
 
-// function CheckAllLoaded(){
-//   //   document.getElementById("seguent"+torn).textContent = "Paraula Invàlida"
-//   // if(!(inds_disponibles.length == 0 || all_words5.length == 0 || paraules_resultat.length == 0)){
-//   if(!(inds_disponibles.length == 0 || all_words5.length == 0)){
-//     document.getElementById("loading").style.visibility="hidden";
-//     all_loaded = true;
-//   }
-// }
-
 function InformacioRebuda(){
   document.getElementById("loading").style.visibility="hidden";
   if(!all_loaded){
       document.getElementById("best_suggerencia").innerHTML = "ARRIA";
+      document.getElementById("other_suggerencia").innerHTML = "AIRAR, TARAR, RASAR, ARNAR";
   }
   all_loaded = true;
 }
@@ -185,11 +152,8 @@ async function makeNextSuggerencia(torn){
           await getFuturaX([ind])
         };
 
-        // console.log(paraules_resultat[ind])
-        // console.log(paraules_resultat[ind][resultat])
         inds_disponibles = CalcularParaulesPossibles(ind, resultat, inds_disponibles, paraules_resultat, info_ind2words);
         console.log('Queden', inds_disponibles.length, 'paraules possibles')
-        // console.log(inds_disponibles)
 
         if(inds_disponibles.length == 0){
             console.log('No hi ha cap paraula que compleixi aquestes condicions...\n')

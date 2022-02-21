@@ -166,8 +166,9 @@ if __name__ == "__main__":
     # inds_disponibles = ['1', '2', '3', '4']
     print(len(inds_disponibles), 'paraules possibles')
     # word_ind = info_words2ind[word]['ind']
-    # best_ind, _ = CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words)
-    best_ind = '1847'
+    best_ind, others_start = CalculateBestWords(inds_disponibles, paraules_resultat, info_ind2words)
+    # best_ind = '1847'
+    print(best_ind, others_start)
     best_word = info_ind2words[best_ind]['word']
     print('per començar prova amb:', best_word, best_ind)
     while not win and tirades < 6:
