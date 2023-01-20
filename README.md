@@ -1,6 +1,6 @@
 # WordleParaulogic
 
-You can use it to help you beat the games in [**THIS**](https://paraules-catalanes.herokuapp.com/) link.
+You can use it to help you beat the games in [**THIS**](https://solve-wordle-cat.onrender.com) link.
 
 As the hyped thing for the last week, and which we will not probably hear anything again, wordle is one of the new sensations. And inspired by it, and with the curiosity to try to solve it with programming. A similar situation happens to the Paraulógic game, although I have the sensation that this has been more popular on where I live than globally, contrary to Wordle's success.
 
@@ -14,9 +14,9 @@ I expected that there will be somewhere easily accessible some kind of Catalan d
 
 The datasets come from basically one source (the Zipf one), although the other two have been used very lightly for finetuning.
 
--[**Zipf's laws of meaning in Catalan Datasets**](https://zenodo.org/record/4120887#.YhafMuj0m3D)
--[**Wikicorpus, v. 1.0: Catalan, Spanish and English portions of the Wikipedia**](https://www.cs.upc.edu/~nlp/wikicorpus/)
--[**Corpus textual informatitzat de la llengua catalana**](https://ctilc.iec.cat/)
+- [**Zipf's laws of meaning in Catalan Datasets**](https://zenodo.org/record/4120887#.YhafMuj0m3D)
+- [**Wikicorpus, v. 1.0: Catalan, Spanish and English portions of the Wikipedia**](https://www.cs.upc.edu/~nlp/wikicorpus/)
+- [**Corpus textual informatitzat de la llengua catalana**](https://ctilc.iec.cat/)
 
 ## Usage
 
@@ -33,4 +33,3 @@ Good Luck!
 In this project there are also some python scripts code that I used to prepare the Database, that can be helpful to you if you are interested.
 
 A demonstration also can be seen [**HERE**](https://drive.google.com/file/d/17FgpybzJLCQ9idTYtavIgG2Gu9SDLkDi/view?usp=sharing)
-
